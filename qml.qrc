@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>DMInputNumber.qml</file>
+        <file>DotItem.qml</file>
+    </qresource>
+</RCC>
