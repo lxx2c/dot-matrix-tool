@@ -2,7 +2,6 @@ import QtQuick 2.12
 import QtQml 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
-import QtQuick.Controls.Material 2.12
 
 Window {
     id: _root
@@ -71,8 +70,13 @@ Window {
                     dot_col_point = height_input.dm_value
                     dot_size = size_input.dm_value
                     dot_spacing = gap_input.dm_value
-                    _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
-                    _root.height = dot_matrix_screen.y + dot_matrix_screen.height + 20
+                    if (dot_matrix_screen.width > code_scorllview.width) {
+                        _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
+                    } else {
+                        _root.width = code_scorllview.x + code_scorllview.width + 20
+                    }
+
+                    _root.height = code_scorllview.y + code_scorllview.height + 20
                 }
             }
         }
@@ -152,6 +156,9 @@ Window {
                     dot_matrix_screen.leftButtonPressed = false
                     dot_matrix_screen.reversalCurrentDot()
                 }
+                onExited: {
+                    dot_matrix_screen.hoveredCurrentDot(0)
+                }
             }
 
             Column {
@@ -174,9 +181,40 @@ Window {
                 }
             }
         }
+        Row {
+            spacing: 10
+            Button {
+                text: "生成代码"
+            }
+
+            Button {
+                text: "复制"
+            }
+        }
+
+        ScrollView {
+            id: code_scorllview
+            width: 800
+            height: 100
+            clip: true
+            background: Rectangle {
+                color: "#f0f0f0"
+                border.color: "black"
+                border.width: 1
+            }
+            TextArea {
+                id: text_code_generator
+            }
+            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+            ScrollBar.vertical.policy: ScrollBar.AsNeeded
+        }
     }
     Component.onCompleted: {
-        _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
-        _root.height = dot_matrix_screen.y + dot_matrix_screen.height + 20
+        if (dot_matrix_screen.width > code_scorllview.width) {
+            _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
+        } else {
+            _root.width = code_scorllview.x + code_scorllview.width + 20
+        }
+        _root.height = code_scorllview.y + code_scorllview.height + 20
     }
 }
