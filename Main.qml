@@ -10,8 +10,8 @@ Window {
     visible: true
     title: qsTr("Dot-Matrix Tool")
 
-    property int dot_row_point: 128
-    property int dot_col_point: 32
+    property int dot_row_point: 20
+    property int dot_col_point: 20
     property int dot_spacing: 1
     property int dot_size: 8
 
@@ -66,10 +66,10 @@ Window {
                 //                anchors.verticalCenter: parent.verticalCenter
                 text: "重新生成"
                 onClicked: {
-                    dot_row_point = width_input.dm_value
-                    dot_col_point = height_input.dm_value
-                    dot_size = size_input.dm_value
-                    dot_spacing = gap_input.dm_value
+                    dot_matrix_screen.dm_dot_row_point = width_input.dm_value
+                    dot_matrix_screen.dm_dot_col_point = height_input.dm_value
+                    dot_matrix_screen.dm_dot_size = size_input.dm_value
+                    dot_matrix_screen.dm_dot_spacing = gap_input.dm_value
                     if (dot_matrix_screen.width > code_scorllview.width) {
                         _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
                     } else {
@@ -80,107 +80,36 @@ Window {
                 }
             }
         }
-        Rectangle {
-            id: dot_matrix_screen
-            width: dot_row_point * (dot_size + dot_spacing) + dot_spacing
-            height: dot_col_point * (dot_size + dot_spacing) + dot_spacing
-            color: "white"
-            property bool leftButtonPressed: false
-
-            property int current_row_index: 0
-            property int current_col_index: 0
-
-            function hoveredCurrentDot(status) {
-                var dot = _col_repeater.itemAt(
-                            current_col_index).children[current_row_index]
-                dot.isHovered = status
-            }
-            function reversalCurrentDot() {
-                var dot = _col_repeater.itemAt(
-                            current_col_index).children[current_row_index]
-                dot.isChecked = !dot.isChecked
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                onPressAndHold: {
-                    console.log("hold")
-                    var row = _col_repeater.itemAt(0)
-                    var item = row.children[127]
-                    console.log("item", item.x, item.y)
-                }
-                function getIndexForAxis(x, y) {
-                    var x_index = Math.floor(x / (dot_size + dot_spacing))
-                }
-
-                onMouseXChanged: {
-                    var row_index = Math.floor(
-                                mouseX / (dot_size + dot_spacing))
-
-                    if (row_index >= dot_row_point) {
-
-                        row_index = row_index - 1
-                    }
-                    if (row_index != dot_matrix_screen.current_row_index) {
-                        if (dot_matrix_screen.leftButtonPressed)
-                            dot_matrix_screen.reversalCurrentDot()
-                        dot_matrix_screen.hoveredCurrentDot(0)
-                        dot_matrix_screen.current_row_index = row_index
-                        dot_matrix_screen.hoveredCurrentDot(1)
-                    }
-                }
-                onMouseYChanged: {
-                    var col_index = Math.floor(
-                                mouseY / (dot_size + dot_spacing))
-                    if (col_index >= dot_col_point) {
-                        col_index = col_index - 1
-                    }
-                    if (col_index != dot_matrix_screen.current_col_index) {
-                        if (dot_matrix_screen.leftButtonPressed)
-                            dot_matrix_screen.reversalCurrentDot()
-                        dot_matrix_screen.hoveredCurrentDot(0)
-                        dot_matrix_screen.current_col_index = col_index
-                        dot_matrix_screen.hoveredCurrentDot(1)
-                    }
-                }
-                onClicked: {
-                    console.log("mouse ", mouseX, mouseY,
-                                Math.floor(mouseX / (dot_size + dot_spacing)),
-                                Math.floor(mouseY / (dot_size + dot_spacing)))
-                }
-                onPressed: {
-                    dot_matrix_screen.leftButtonPressed = true
-                }
-                onReleased: {
-                    dot_matrix_screen.leftButtonPressed = false
-                    dot_matrix_screen.reversalCurrentDot()
-                }
-                onExited: {
-                    dot_matrix_screen.hoveredCurrentDot(0)
+        Row {
+            spacing: 5
+            DMSelect {
+                width: 220
+                dm_name: "读取模式:"
+                dm_model: ["逐行-从左到右", "逐行-从左到右", "逐列-从上到下", "逐行-从下到上"]
+                onDm_select_indexChanged: {
+                    console.log(dm_select_index)
                 }
             }
-
-            Column {
-                x: dot_spacing
-                y: dot_spacing
-                anchors.fill: parent
-                spacing: dot_spacing
-                Repeater {
-                    id: _col_repeater
-                    model: dot_col_point
-                    delegate: Row {
-                        spacing: dot_spacing
-                        Repeater {
-                            model: dot_row_point
-                            delegate: DotItem {
-                                width: dot_size
-                            }
-                        }
-                    }
-                }
+            DMSelect {
+                width: 150
+                dm_name: "其他:"
+                dm_model: ["高位在前", "高位在后"]
+            }
+            DMSelect {
+                width: 150
+                dm_name: "单位:"
+                dm_model: ["uint8_t", "uint16_t", "uint32_t", "uint64_t"]
             }
         }
+
+        DMScreen {
+            id: dot_matrix_screen
+            dm_dot_col_point: dot_col_point
+            dm_dot_row_point: dot_row_point
+            dm_dot_size: dot_size
+            dm_dot_spacing: dot_spacing
+        }
+
         Row {
             spacing: 10
             Button {
@@ -216,5 +145,6 @@ Window {
             _root.width = code_scorllview.x + code_scorllview.width + 20
         }
         _root.height = code_scorllview.y + code_scorllview.height + 20
+        dot_matrix_screen.dm_dot_col_point = dot_col_point
     }
 }

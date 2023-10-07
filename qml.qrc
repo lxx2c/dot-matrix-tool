@@ -3,5 +3,7 @@
         <file>main.qml</file>
         <file>DMInputNumber.qml</file>
         <file>DotItem.qml</file>
+        <file>DMSelect.qml</file>
+        <file>DMScreen.qml</file>
     </qresource>
 </RCC>
