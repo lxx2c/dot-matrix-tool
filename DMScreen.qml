@@ -1,12 +1,14 @@
 import QtQuick 2.0
 
 Rectangle {
-    property var dm_screen_dot_matrix: [[0], [0]]
+    property var dm_screen_dot_matrix: [[0]]
 
-    property int dm_dot_row_point: 128
-    property int dm_dot_col_point: 1
+    property int dm_dot_row_point: 1 //屏幕每行点数
+    property int dm_dot_col_point: 1 //屏幕每列点数
     property int dm_dot_size: 8
     property int dm_dot_spacing: 1
+
+    property var dm_screen_matrix_point
 
     id: _root
     width: dm_dot_row_point * (dm_dot_size + dm_dot_spacing) + dm_dot_spacing
@@ -14,107 +16,145 @@ Rectangle {
     color: "white"
     property bool leftButtonPressed: false
 
-    property int current_row_index: 0
-    property int current_col_index: 0
+    property int latest_x: 0 //横向坐标序号
+    property int latest_y: 0 //纵向坐标序号
 
-    function hoveredCurrentDot(status) {
-        var dot = _col_repeater.itemAt(
-                    current_row_index).children[current_col_index]
-        dot.isHovered = status
+    function setPoint(x, y) {
+        var dot = _col_repeater.itemAt(y).children[x]
+        dot.isChecked = true
     }
-    function reversalCurrentDot() {
-        var dot = _col_repeater.itemAt(
-                    current_row_index).children[current_col_index]
+
+    function resetPoint(x, y) {
+        var dot = _col_repeater.itemAt(y).children[x]
+        dot.isChecked = false
+    }
+
+    function resetScreen() {
+        _root.dm_screen_dot_matrix = Array.from(
+                    new Array(_root.dm_dot_col_point),
+                    () => new Array(_root.dm_dot_row_point).fill(0)).map(
+                    row => row.map(Boolean))
+    }
+
+    //鼠标hover
+    function enterPoint(x, y) {
+        var dot = _col_repeater.itemAt(y).children[x]
+        dot.isHovered = true
+    }
+
+    function exitPoint(x, y) {
+        var dot = _col_repeater.itemAt(y).children[x]
+        dot.isHovered = false
+    }
+
+    //触发点反转
+    function triggerPoint(x, y) {
+
+        var dot = _col_repeater.itemAt(y).children[x]
         dot.isChecked = !dot.isChecked
-
-        dm_screen_dot_matrix[current_row_index][current_col_index] = Number(
-                    dot.isChecked)
-
-        console.log("row", current_row_index, "col", current_col_index)
-        console.log("dm_screen_dot_matrix")
-        for (var i = 0; i < dm_dot_col_point; i++) {
-            console.log(i, dm_screen_dot_matrix[i])
-        }
+        //写入屏幕点阵数组
+        _root.dm_screen_dot_matrix[y][x] = dot.isChecked
     }
+
+    //返回触发点
+    function getScreenPoints() {
+        var points = []
+        for (var y = 0; y < _root.dm_dot_col_point; y++) {
+            for (var x = 0; x < _root.dm_dot_row_point; x++) {
+                if (_root.dm_screen_dot_matrix[y][x] === true) {
+                    var point = Qt.point(x, y)
+                    points.push(point)
+                }
+            }
+        }
+        return points
+    }
+
+
+    //设置触发点
+    function setScreenPoints(points) {
+        for (var index in points) {
+            var x = points[index].x
+            var y = points[index].y
+            if ((points[index].x < _root.dm_dot_row_point)
+                    & (points[index].y < _root.dm_dot_col_point)) {
+                _root.setPoint(x, y)
+                //写入屏幕点阵数组
+                _root.dm_screen_dot_matrix[y][x] = true
+            }
+        }
+        //        console.log("yx:", dm_screen_dot_matrix)
+    }
+
     onDm_screen_dot_matrixChanged: {
-        console.log("screen-dot", dm_screen_dot_matrix)
+
+        //        console.log("screen-dot", dm_screen_dot_matrix)
     }
 
     onDm_dot_col_pointChanged: {
-        dm_screen_dot_matrix = [[0]]
-
-        for (var i = 0; i < dm_dot_row_point; i++) {
-            while (dm_screen_dot_matrix[i].length < dm_dot_col_point) {
-                dm_screen_dot_matrix[i].push(0)
-            }
-            dm_screen_dot_matrix.push([0])
-        }
+        _root.resetScreen()
     }
     onDm_dot_row_pointChanged: {
-        dm_screen_dot_matrix = [[0]]
-        for (var i = 0; i < dm_dot_row_point; i++) {
-            while (dm_screen_dot_matrix[i].length < dm_dot_col_point) {
-                dm_screen_dot_matrix[i].push(0)
-            }
-            dm_screen_dot_matrix.push([0])
-        }
+        _root.resetScreen()
     }
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
-        //        onPressAndHold: {
-        //            console.log("hold")
-        //            var row = _col_repeater.itemAt(0)
-        //            var item = row.children[127]
-        //            console.log("item", item.x, item.y)
-        //        }
         function getIndexForAxis(x, y) {
             var x_index = Math.floor(x / (dm_dot_size + dm_dot_spacing))
         }
 
         onMouseXChanged: {
-            var col_index = Math.floor(mouseX / (dm_dot_size + dm_dot_spacing))
-            if (col_index >= dm_dot_col_point) {
-                col_index = col_index - 1
+            //鼠标X变化
+            //计算当前x坐标对应点阵中的X轴方向点的序号
+            var current_x = Math.floor(mouseX / (dm_dot_size + dm_dot_spacing))
+            if (current_x >= dm_dot_row_point) {
+                current_x = dm_dot_row_point - 1
             }
-            if (col_index != _root.current_col_index) {
+            if (current_x < 0) {
+                current_x = 0
+            }
+            //发生变化时
+            if (current_x != _root.latest_x) {
+                //离开旧点
+                _root.exitPoint(_root.latest_x, _root.latest_y)
+                _root.latest_x = current_x
+                //进入新点
+                _root.enterPoint(_root.latest_x, _root.latest_y)
+                //如果左键被按下
                 if (_root.leftButtonPressed)
-                    _root.reversalCurrentDot()
-                _root.hoveredCurrentDot(0)
-                _root.current_col_index = col_index
-                _root.hoveredCurrentDot(1)
+                    _root.triggerPoint(_root.latest_x, _root.latest_y)
             }
         }
         onMouseYChanged: {
-            var row_index = Math.floor(mouseY / (dm_dot_size + dm_dot_spacing))
-
-            if (row_index >= dm_dot_row_point) {
-
-                row_index = row_index - 1
+            var current_y = Math.floor(mouseY / (dm_dot_size + dm_dot_spacing))
+            if (current_y >= dm_dot_col_point) {
+                current_y = dm_dot_col_point - 1
             }
-            if (row_index != _root.current_row_index) {
+            if (current_y < 0) {
+                current_y = 0
+            }
+            if (current_y != _root.latest_y) {
+                //离开旧点
+                _root.exitPoint(_root.latest_x, _root.latest_y)
+                _root.latest_y = current_y
+                //进入新点
+                _root.enterPoint(_root.latest_x, _root.latest_y)
+                //如果左键被按下
                 if (_root.leftButtonPressed)
-                    _root.reversalCurrentDot()
-                _root.hoveredCurrentDot(0)
-                _root.current_row_index = row_index
-                _root.hoveredCurrentDot(1)
+                    _root.triggerPoint(_root.latest_x, _root.latest_y)
             }
-        }
-        onClicked: {
-            console.log("mouse ", mouseX, mouseY,
-                        Math.floor(mouseX / (dm_dot_size + dm_dot_spacing)),
-                        Math.floor(mouseY / (dm_dot_size + dm_dot_spacing)))
         }
         onPressed: {
             _root.leftButtonPressed = true
+            _root.triggerPoint(_root.latest_x, _root.latest_y)
         }
         onReleased: {
             _root.leftButtonPressed = false
-            _root.reversalCurrentDot()
         }
         onExited: {
-            _root.hoveredCurrentDot(0)
+            _root.exitPoint(_root.latest_x, _root.latest_y)
         }
     }
 
@@ -127,6 +167,7 @@ Rectangle {
             id: _col_repeater
             model: dm_dot_col_point
             delegate: Row {
+                //生成一行
                 spacing: dm_dot_spacing
                 Repeater {
                     model: dm_dot_row_point

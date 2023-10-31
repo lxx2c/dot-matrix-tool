@@ -5,7 +5,7 @@ Item {
     property string dm_name: ""
     property int dm_font_size: 15
     property var dm_model: []
-    property int dm_select_index: 0
+    property int dm_value: 0
     id: _root
 
     implicitHeight: 30
@@ -22,7 +22,7 @@ Item {
         }
         ComboBox {
             id: _combo
-            currentIndex: dm_select_index
+            currentIndex: dm_value
             width: _root.width - _text.width - 5
             height: _root.height - 8
             anchors.verticalCenter: parent.verticalCenter
@@ -40,7 +40,7 @@ Item {
 
             model: dm_model
             onCurrentIndexChanged: {
-                dm_select_index = currentIndex
+                dm_value = currentIndex
             }
         }
     }

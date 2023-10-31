@@ -17,6 +17,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Sql REQUIRED )
 set(PROJECT_SOURCES
         main.cpp
         sqlitedb.h sqlitedb.cpp
+        backend.h backend.cpp
+        settings.h settings.cpp
+        usersettings.h usersettings.cpp
         qml.qrc
 )
 

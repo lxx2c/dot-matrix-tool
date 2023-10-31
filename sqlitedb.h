@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QSqlDatabase>
 #include <QDebug>
+#include <QSettings>
 
 class SqliteDB
 {
