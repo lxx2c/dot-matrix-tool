@@ -5,7 +5,8 @@ Item {
     property string dm_name: ""
     property int dm_font_size: 15
     property var dm_model: []
-    property int dm_value: 0
+    property int dm_input_value: 0
+    property int dm_current_value: 0
     id: _root
 
     implicitHeight: 30
@@ -22,7 +23,7 @@ Item {
         }
         ComboBox {
             id: _combo
-            currentIndex: dm_value
+            currentIndex: dm_input_value
             width: _root.width - _text.width - 5
             height: _root.height - 8
             anchors.verticalCenter: parent.verticalCenter
@@ -31,16 +32,24 @@ Item {
                 color: "#E0E0E0"
                 radius: 3
             }
+            indicator: Rectangle {
+                width: 5
+                height: parent.height
+                color: "green"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+            }
+
             contentItem: Text {
                 text: _combo.displayText
                 font.pixelSize: dm_font_size
                 verticalAlignment: Text.AlignVCenter
-                leftPadding: 5
+                leftPadding: 1
             }
 
             model: dm_model
             onCurrentIndexChanged: {
-                dm_value = currentIndex
+                dm_current_value = currentIndex
             }
         }
     }

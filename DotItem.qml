@@ -3,7 +3,7 @@ import QtQuick 2.12
 Rectangle {
 
     property color default_color: "gray"
-    property color checked_color: "red"
+    property color checked_color: "green"
 
     property bool isChecked: false
     property bool isHovered: false

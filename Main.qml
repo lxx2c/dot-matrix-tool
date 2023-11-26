@@ -2,56 +2,97 @@ import QtQuick 2.12
 import QtQml 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Dialogs 1.2
 
 import DmBackend 1.0
 
 Window {
     id: _root
-    width: 780
+    width: 755
     height: 480
     visible: true
-    title: qsTr("Dot-Matrix Tool")
-
-    property int dot_row_point: 10 //屏幕每行点数
-    property int dot_col_point: 20 //屏幕每列点数
-    property int dot_spacing: 1
-    property int dot_size: 8
-
+    title: qsTr("Dot-Matrix Tool - default.ini")
     Backend {
         id: backend
         objectName: "qml_backend"
     }
 
-    function resizeScreen() {
-        dot_matrix_screen.dm_dot_row_point = width_input.dm_value
-        dot_matrix_screen.dm_dot_col_point = height_input.dm_value
-        dot_matrix_screen.dm_dot_size = size_input.dm_value
-        dot_matrix_screen.dm_dot_spacing = gap_input.dm_value
+    DMNewDialog {
+        id: _new_dialog
+        onDm_confirm: {
+            console.log("confirm", _new_dialog.dm_file_name)
+            backend.signalQmlCreateSetting(_new_dialog.dm_file_name)
+            width_input.dm_input_value = _new_dialog.dm_width_points
+            height_input.dm_input_value = _new_dialog.dm_height_points
+            spacing_input.dm_input_value = _new_dialog.dm_points_spacing
+            size_input.dm_input_value = _new_dialog.dm_points_size
+            color_input.dm_input_value = _new_dialog.dm_dot_checked_color
 
-        if (dot_matrix_screen.width > code_scorllview.width) {
-            _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
-        } else {
-            _root.width = code_scorllview.x + code_scorllview.width + 20
+            backend.signalQmlValueChange()
+
+            resizeScreen()
         }
+    }
+
+    FileDialog {
+        id: _file_dialog
+        title: "选择打开的文件"
+        nameFilters: ["ini文件 (*.ini)"]
+        onAccepted: {
+            backend.signalQmlOpenSetting(_file_dialog.fileUrl)
+        }
+    }
+
+    //重设点阵屏大小
+    function resizeScreen() {
+        dot_matrix_screen.dm_dot_row_point = width_input.dm_current_value
+        dot_matrix_screen.dm_dot_col_point = height_input.dm_current_value
+        dot_matrix_screen.dm_dot_size = size_input.dm_current_value
+        dot_matrix_screen.dm_dot_spacing = spacing_input.dm_current_value
     }
 
     Column {
         x: 10
         y: 10
         spacing: 10
+        id: col_menu
+        Row {
+            spacing: 10
+            Button {
+                height: size_input.height + 8
+                text: "新建"
+                onClicked: {
+                    _new_dialog.dm_input_width_points = width_input.dm_current_value
+                    _new_dialog.dm_input_height_points = height_input.dm_current_value
+                    _new_dialog.dm_input_points_spacing = spacing_input.dm_current_value
+                    _new_dialog.dm_input_points_size = size_input.dm_current_value
+                    _new_dialog.dm_input_dot_checked_color = color_input.dm_current_value
+                    _new_dialog.show()
+                }
+            }
+            Button {
+                height: size_input.height + 8
+                text: "打开"
+
+                onClicked: {
+                    _file_dialog.open()
+                }
+            }
+            Text {
+                anchors.bottom: parent.bottom
+                text: qsTr("v0.1.1")
+            }
+        }
+
         Row {
             spacing: 5
             DMInputNumber {
-                objectName: "Input_Row_Point"
+                objectName: "Input_RowPoints"
                 id: width_input
                 anchors.verticalCenter: parent.verticalCenter
                 dm_name: "宽:"
                 height: 20
                 width: 80
-                dm_value: dot_row_point
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Input_Row_Point)
-                }
             }
             Text {
                 id: name
@@ -59,30 +100,22 @@ Window {
                 y: parent.height / 2 - height / 2 + 2
             }
             DMInputNumber {
-                objectName: "Input_Col_Point"
+                objectName: "Input_ColPoints"
                 id: height_input
                 anchors.verticalCenter: parent.verticalCenter
                 dm_name: "高:"
                 height: 20
                 width: 80
-                dm_value: dot_col_point
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Input_Col_Point)
-                }
             }
 
             DMInputNumber {
                 objectName: "Input_Spacing"
-                id: gap_input
+                id: spacing_input
                 anchors.verticalCenter: parent.verticalCenter
                 dm_name: "间隙:"
                 dm_max_length: 2
                 height: 20
                 width: 90
-                dm_value: dot_spacing
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Input_Spacing)
-                }
             }
             DMInputNumber {
                 objectName: "Input_Size"
@@ -92,59 +125,101 @@ Window {
                 dm_max_length: 2
                 height: 20
                 width: 120
-                dm_value: dot_size
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Input_Size)
+            }
+            DMSelectColor {
+                objectName: "Input_Color"
+                id: color_input
+                height: 20
+                width: 120
+                anchors.verticalCenter: parent.verticalCenter
+                dm_name: "色块颜色:"
+                dm_size: 20
+                onDm_current_valueChanged: {
+                    dot_matrix_screen.dm_dot_check_color = dm_current_value
+                    backend.signalQmlValueChange()
+                }
+            }
+
+            Button {
+                height: size_input.height + 8
+                text: "重新生成"
+                onClicked: {
+                    resizeScreen()
+                    backend.signalQmlValueChange()
                 }
             }
             Button {
                 height: size_input.height + 8
-                //                anchors.verticalCenter: parent.verticalCenter
-                text: "重新生成"
+                text: "清空画面"
                 onClicked: {
-                    resizeScreen()
-                    var points = dot_matrix_screen.getScreenPoints()
-                    console.log("points ", points)
-                    dot_matrix_screen.setScreenPoints(points)
+                    dot_matrix_screen.clearScreen()
                 }
             }
         }
         Row {
             spacing: 5
             DMSelect {
-                objectName: "Select_Read"
-                width: 220
-                dm_name: "读取模式:"
-                dm_model: ["逐行-从左到右", "逐行-从右到左", "逐列-从上到下", "逐行-从下到上"]
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Select_Read)
-                }
-            }
-            DMSelect {
-                objectName: "Select_Storage"
-                width: 200
-                dm_name: "存储方式:"
-                dm_model: ["高位在前", "高位在后"]
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Select_Storage)
-                }
-            }
-            DMSelect {
-                objectName: "Select_Unit"
+                objectName: "Select_ReadMode"
                 width: 150
+                dm_name: "取模方式:"
+                dm_model: ["逐行", "逐列", "行列式", "列行式"]
+                onDm_current_valueChanged: {
+                    backend.signalQmlValueChange()
+                }
+            }
+            DMSelect {
+                objectName: "Select_ReadDirection"
+                width: 210
+                dm_name: "取模方向:"
+                dm_model: ["顺向(高位在前)", "逆向(低位在前)"]
+                onDm_current_valueChanged: {
+                    backend.signalQmlValueChange()
+                }
+            }
+            DMSelect {
+                objectName: "Select_UnitWidth"
+                width: 100
                 dm_name: "单位:"
-                dm_model: ["uint8_t", "uint16_t", "uint32_t", "uint64_t"]
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Select_Unit)
+                dm_model: ["8位", "16位", "32位"]
+                onDm_current_valueChanged: {
+                    backend.signalQmlValueChange()
                 }
             }
             DMSelect {
-                objectName: "Select_Level"
-                width: 150
+                objectName: "Select_DotLevel"
+                width: 110
                 dm_name: "触点电平:"
-                dm_model: ["0", "1"]
-                onDm_valueChanged: {
-                    backend.signalQmlValueChange(Backend.Select_Level)
+                dm_model: ["1", "0"]
+                onDm_current_valueChanged: {
+                    backend.signalQmlValueChange()
+                }
+            }
+            Rectangle {
+                width: 70
+                height: 22
+                color: "red"
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    id: current_x
+                    text: qsTr("X:0")
+                    color: "white"
+                    font.bold: true
+                    font.pointSize: 10
+                }
+            }
+            Rectangle {
+                width: 70
+                height: 22
+                color: "red"
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    id: current_y
+                    text: qsTr("Y:0")
+                    color: "white"
+                    font.bold: true
+                    font.pointSize: 10
                 }
             }
         }
@@ -152,29 +227,57 @@ Window {
         DMScreen {
             id: dot_matrix_screen
             objectName: "dot_matrix_screen"
-            dm_dot_col_point: dot_col_point
-            dm_dot_row_point: dot_row_point
-            dm_dot_size: dot_size
-            dm_dot_spacing: dot_spacing
+            dm_dot_col_point: 20
+            dm_dot_row_point: 20
+            dm_dot_size: 10
+            dm_dot_spacing: 1
             dm_screen_dot_matrix: [[0]]
             onDm_dot_col_pointChanged: {
                 _root.resizeScreen()
             }
+            onDm_dot_row_pointChanged: {
+                _root.resizeScreen()
+            }
+            onLatest_xChanged: {
+                current_x.text = "X:" + latest_x
+            }
+            onLatest_yChanged: {
+                current_y.text = "Y:" + latest_y
+            }
         }
 
         Row {
+            id: row_general
             spacing: 10
             Button {
+                id: btn_general
+                height: 30
+                width: 80
                 text: "生成代码"
                 onClicked: {
-                    backend.signalQmlBuildButtonClicked()
                     backend.signalQmlScreenMatrixPoint(
                                 dot_matrix_screen.getScreenPoints())
                 }
             }
-
             Button {
+                id: btn_copy
+                height: 30
+                width: 50
                 text: "复制"
+                onClicked: {
+                    text_code_generator.selectAll()
+                    text_code_generator.copy()
+                }
+            }
+            DMInputNumber {
+                objectName: "Input_PerLineElements"
+                anchors.verticalCenter: parent.verticalCenter
+                height: btn_general.height - 10
+                width: 150
+                dm_name: "每行元素:"
+                onDm_current_valueChanged: {
+                    backend.signalQmlValueChange()
+                }
             }
         }
 
@@ -188,8 +291,11 @@ Window {
                 border.color: "black"
                 border.width: 1
             }
-            TextArea {
+            TextEdit {
+                objectName: "text_code_generator"
                 id: text_code_generator
+                height: code_scorllview.height
+                selectByMouse: true
             }
             ScrollBar.horizontal.policy: ScrollBar.AsNeeded
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -202,15 +308,15 @@ Window {
             _root.width = code_scorllview.x + code_scorllview.width + 20
         }
         _root.height = code_scorllview.y + code_scorllview.height + 20
-        dot_matrix_screen.dm_dot_col_point = dot_col_point
-        dot_matrix_screen.dm_dot_row_point = dot_row_point
+        dot_matrix_screen.dm_dot_col_point = height_input.dm_current_value
+        dot_matrix_screen.dm_dot_row_point = width_input.dm_current_value
     }
     onWidthChanged: {
 
-        backend.signalQmlValueChange(Backend.Window_Width)
+        backend.signalQmlValueChange()
     }
     onHeightChanged: {
 
-        backend.signalQmlValueChange(Backend.Window_Height)
+        backend.signalQmlValueChange()
     }
 }

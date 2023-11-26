@@ -5,9 +5,9 @@ import QtQuick.Controls 2.12
 Item {
     property string dm_name: ""
     property int dm_font_size: 15
-    property int dm_max_length: 4
-    property int dm_input_value: 0
-    property int dm_current_value : 0
+    property int dm_max_length: 10
+    property string dm_input_value: ""
+    property string dm_current_value: ""
     id: _root
     Row {
         id: _row
@@ -21,9 +21,9 @@ Item {
 
         TextField {
             id: _input_value
-            text: dm_input_value.toString()
+            text: dm_input_value
             width: _root.width - _text.width - _row.spacing
-            height: _text.height + 8
+            height: _text.height + 12
             selectByMouse: true
             anchors.verticalCenter: parent.verticalCenter
             verticalAlignment: Text.AlignVCenter
@@ -33,10 +33,10 @@ Item {
                 border.width: 0.5
                 radius: 2
             }
-            font.pixelSize: _text.font.pixelSize - 2
             maximumLength: dm_max_length
+            font.pixelSize: _text.font.pixelSize - 2
             onTextChanged: {
-                _root.dm_current_value = Number(_input_value.text)
+                _root.dm_current_value = _input_value.text
             }
         }
     }

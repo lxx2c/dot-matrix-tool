@@ -11,20 +11,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick Sql REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Sql REQUIRED )
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick  REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick  REQUIRED )
 
 set(PROJECT_SOURCES
         main.cpp
-        sqlitedb.h sqlitedb.cpp
         backend.h backend.cpp
-        settings.h settings.cpp
         usersettings.h usersettings.cpp
         qml.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(dot-matrix-tool
+        WIN32
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
@@ -41,6 +40,7 @@ else()
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(dot-matrix-tool
+            WIN32
           ${PROJECT_SOURCES}
         )
     endif()
@@ -49,7 +49,7 @@ endif()
 target_compile_definitions(dot-matrix-tool
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(dot-matrix-tool
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Sql)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick )
 
 set_target_properties(dot-matrix-tool PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

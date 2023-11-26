@@ -5,5 +5,9 @@
         <file>DotItem.qml</file>
         <file>DMSelect.qml</file>
         <file>DMScreen.qml</file>
+        <file>DMNewDialog.qml</file>
+        <file>DMInput.qml</file>
+        <file>DMSelectColor.qml</file>
+        <file>icon.png</file>
     </qresource>
 </RCC>

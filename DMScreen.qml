@@ -7,8 +7,7 @@ Rectangle {
     property int dm_dot_col_point: 1 //屏幕每列点数
     property int dm_dot_size: 8
     property int dm_dot_spacing: 1
-
-    property var dm_screen_matrix_point
+    property string dm_dot_check_color: "green"
 
     id: _root
     width: dm_dot_row_point * (dm_dot_size + dm_dot_spacing) + dm_dot_spacing
@@ -29,31 +28,52 @@ Rectangle {
         dot.isChecked = false
     }
 
-    function resetScreen() {
+    function resizeScreenArray() {
         _root.dm_screen_dot_matrix = Array.from(
                     new Array(_root.dm_dot_col_point),
                     () => new Array(_root.dm_dot_row_point).fill(0)).map(
                     row => row.map(Boolean))
     }
 
+    function clearScreen() {
+        for (var y = 0; y < _root.dm_dot_col_point; y++) {
+            for (var x = 0; x < _root.dm_dot_row_point; x++) {
+                if (_root.dm_screen_dot_matrix[y][x] === true) {
+                    _root.dm_screen_dot_matrix[y][x] = false
+                    var dot = _col_repeater.itemAt(y).children[x]
+                    dot.isChecked = false
+                }
+            }
+        }
+    }
+
     //鼠标hover
     function enterPoint(x, y) {
-        var dot = _col_repeater.itemAt(y).children[x]
-        dot.isHovered = true
+        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
+            var dot = _col_repeater.itemAt(y).children[x]
+            if (typeof (dot) === "object") {
+                dot.isHovered = true
+            }
+        }
     }
 
     function exitPoint(x, y) {
-        var dot = _col_repeater.itemAt(y).children[x]
-        dot.isHovered = false
+        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
+            var dot = _col_repeater.itemAt(y).children[x]
+            if (typeof (dot) === "object") {
+                dot.isHovered = false
+            }
+        }
     }
 
     //触发点反转
     function triggerPoint(x, y) {
-
-        var dot = _col_repeater.itemAt(y).children[x]
-        dot.isChecked = !dot.isChecked
-        //写入屏幕点阵数组
-        _root.dm_screen_dot_matrix[y][x] = dot.isChecked
+        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
+            var dot = _col_repeater.itemAt(y).children[x]
+            dot.isChecked = !dot.isChecked
+            //写入屏幕点阵数组
+            _root.dm_screen_dot_matrix[y][x] = dot.isChecked
+        }
     }
 
     //返回触发点
@@ -70,7 +90,6 @@ Rectangle {
         return points
     }
 
-
     //设置触发点
     function setScreenPoints(points) {
         for (var index in points) {
@@ -86,18 +105,12 @@ Rectangle {
         //        console.log("yx:", dm_screen_dot_matrix)
     }
 
-    onDm_screen_dot_matrixChanged: {
-
-        //        console.log("screen-dot", dm_screen_dot_matrix)
-    }
-
     onDm_dot_col_pointChanged: {
-        _root.resetScreen()
+        _root.resizeScreenArray()
     }
     onDm_dot_row_pointChanged: {
-        _root.resetScreen()
+        _root.resizeScreenArray()
     }
-
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
@@ -173,9 +186,13 @@ Rectangle {
                     model: dm_dot_row_point
                     delegate: DotItem {
                         width: dm_dot_size
+                        checked_color: dm_dot_check_color
                     }
                 }
             }
         }
+    }
+    onDm_dot_check_colorChanged: {
+
     }
 }
