@@ -5,6 +5,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Dialogs 1.2
 
 import DmBackend 1.0
+import "./"
 
 Window {
     id: _root
@@ -49,6 +50,41 @@ Window {
         dot_matrix_screen.dm_dot_col_point = height_input.dm_current_value
         dot_matrix_screen.dm_dot_size = size_input.dm_current_value
         dot_matrix_screen.dm_dot_spacing = spacing_input.dm_current_value
+    }
+    function moveLeft() {
+        var dotMatrix = dot_matrix_screen.getScreenPoints()
+        for (let i in dotMatrix) {
+            dotMatrix[i].x -= 1
+        }
+        dot_matrix_screen.clearScreen()
+        dot_matrix_screen.setScreenPoints(dotMatrix)
+    }
+
+    function moveRight() {
+        var dotMatrix = dot_matrix_screen.getScreenPoints()
+        for (let i in dotMatrix) {
+            dotMatrix[i].x += 1
+        }
+        dot_matrix_screen.clearScreen()
+        dot_matrix_screen.setScreenPoints(dotMatrix)
+    }
+
+    function moveUp() {
+        var dotMatrix = dot_matrix_screen.getScreenPoints()
+        for (let i in dotMatrix) {
+            dotMatrix[i].y -= 1
+        }
+        dot_matrix_screen.clearScreen()
+        dot_matrix_screen.setScreenPoints(dotMatrix)
+    }
+
+    function moveDown() {
+        var dotMatrix = dot_matrix_screen.getScreenPoints()
+        for (let i in dotMatrix) {
+            dotMatrix[i].y += 1
+        }
+        dot_matrix_screen.clearScreen()
+        dot_matrix_screen.setScreenPoints(dotMatrix)
     }
 
     Column {
@@ -221,6 +257,48 @@ Window {
                     font.bold: true
                     font.pointSize: 10
                 }
+            }
+        }
+
+        Row {
+            topPadding: -10
+            DMButton {
+                width: 80
+                height: 30
+                dm_text: "左"
+                onClicked: {
+                    moveLeft()
+                }
+                anchors.bottom: parent.bottom
+            }
+            Column {
+                DMButton {
+                    width: 80
+                    height: 30
+                    dm_text: "上"
+                    onClicked: {
+                        moveUp()
+                    }
+                }
+                DMButton {
+                    width: 80
+                    height: 30
+                    dm_text: "下"
+                    onClicked: {
+                        moveDown()
+                    }
+                }
+                anchors.bottom: parent.bottom
+            }
+
+            DMButton {
+                width: 80
+                height: 30
+                dm_text: "右"
+                onClicked: {
+                    moveRight()
+                }
+                anchors.bottom: parent.bottom
             }
         }
 

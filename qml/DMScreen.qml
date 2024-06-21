@@ -2,6 +2,7 @@ import QtQuick 2.0
 
 Rectangle {
     property var dm_screen_dot_matrix: [[0]]
+    property var dm_screen_actived_points: []
 
     property int dm_dot_row_point: 1 //屏幕每行点数
     property int dm_dot_col_point: 1 //屏幕每列点数
@@ -19,6 +20,10 @@ Rectangle {
     property int latest_y: 0 //纵向坐标序号
 
     function setPoint(x, y) {
+        if (y < 0 | y >= dm_dot_col_point | x < 0 | x >= dm_dot_row_point) {
+            return
+        }
+
         var dot = _col_repeater.itemAt(y).children[x]
         dot.isChecked = true
     }
@@ -96,7 +101,8 @@ Rectangle {
             var x = points[index].x
             var y = points[index].y
             if ((points[index].x < _root.dm_dot_row_point)
-                    & (points[index].y < _root.dm_dot_col_point)) {
+                    & (points[index].y < _root.dm_dot_col_point)
+                    & (points[index].y >= 0) & (points[index].x >= 0)) {
                 _root.setPoint(x, y)
                 //写入屏幕点阵数组
                 _root.dm_screen_dot_matrix[y][x] = true
