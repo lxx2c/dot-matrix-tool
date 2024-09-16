@@ -3,6 +3,7 @@ import QtQml 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Dialogs 1.2
+import QtQuick.Layouts 1.3
 
 import DmBackend 1.0
 import "./"
@@ -87,10 +88,13 @@ Window {
         dot_matrix_screen.setScreenPoints(dotMatrix)
     }
 
-    Column {
+    ColumnLayout {
         x: 10
         y: 10
         spacing: 10
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10
+        anchors.top: parent.top
         id: col_menu
         Row {
             spacing: 10
@@ -361,8 +365,8 @@ Window {
 
         ScrollView {
             id: code_scorllview
-            width: 800
-            height: 100
+            Layout.preferredWidth: 800
+            Layout.fillHeight: true
             clip: true
             background: Rectangle {
                 color: "#f0f0f0"
