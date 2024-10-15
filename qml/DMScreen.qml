@@ -4,9 +4,11 @@ Rectangle {
     property var dm_screen_dot_matrix: [[0]]
     property var dm_screen_actived_points: []
 
-    property int dm_dot_row_point: 1 //屏幕每行点数
-    property int dm_dot_col_point: 1 //屏幕每列点数
-    property int dm_dot_size: 8
+    property int dm_dot_row_point: 2
+    //屏幕每行点数
+    property int dm_dot_col_point: 2
+    //屏幕每列点数
+    property int dm_dot_size: 6
     property int dm_dot_spacing: 1
     property string dm_dot_check_color: "green"
 
@@ -20,17 +22,18 @@ Rectangle {
     property int latest_y: 0 //纵向坐标序号
 
     function setPoint(x, y) {
-        if (y < 0 | y >= dm_dot_col_point | x < 0 | x >= dm_dot_row_point) {
+        if (y < 0 || y >= dm_dot_col_point || x < 0 || x >= dm_dot_row_point) {
             return
         }
-
-        var dot = _col_repeater.itemAt(y).children[x]
+        var dot = _root.getDotItem(x, y)
         dot.isChecked = true
     }
 
     function resetPoint(x, y) {
-        var dot = _col_repeater.itemAt(y).children[x]
-        dot.isChecked = false
+        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
+            var dot = _root.getDotItem(x, y)
+            dot.isChecked = false
+        }
     }
 
     function resizeScreenArray() {
@@ -45,8 +48,7 @@ Rectangle {
             for (var x = 0; x < _root.dm_dot_row_point; x++) {
                 if (_root.dm_screen_dot_matrix[y][x] === true) {
                     _root.dm_screen_dot_matrix[y][x] = false
-                    var dot = _col_repeater.itemAt(y).children[x]
-                    dot.isChecked = false
+                    resetPoint(x, y)
                 }
             }
         }
@@ -55,8 +57,8 @@ Rectangle {
     //鼠标hover
     function enterPoint(x, y) {
         if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
-            var dot = _col_repeater.itemAt(y).children[x]
-            if (typeof (dot) === "object") {
+            var dot = _root.getDotItem(x, y)
+            if (dot && typeof (dot) === "object") {
                 dot.isHovered = true
             }
         }
@@ -64,8 +66,8 @@ Rectangle {
 
     function exitPoint(x, y) {
         if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
-            var dot = _col_repeater.itemAt(y).children[x]
-            if (typeof (dot) === "object") {
+            var dot = _root.getDotItem(x, y)
+            if (dot && typeof (dot) === "object") {
                 dot.isHovered = false
             }
         }
@@ -74,9 +76,8 @@ Rectangle {
     //触发点反转
     function triggerPoint(x, y) {
         if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
-            var dot = _col_repeater.itemAt(y).children[x]
+            var dot = _root.getDotItem(x, y)
             dot.isChecked = !dot.isChecked
-            //写入屏幕点阵数组
             _root.dm_screen_dot_matrix[y][x] = dot.isChecked
         }
     }
@@ -100,40 +101,41 @@ Rectangle {
         for (var index in points) {
             var x = points[index].x
             var y = points[index].y
-            if ((points[index].x < _root.dm_dot_row_point)
-                    & (points[index].y < _root.dm_dot_col_point)
-                    & (points[index].y >= 0) & (points[index].x >= 0)) {
+            if ((x < _root.dm_dot_row_point) && (y < _root.dm_dot_col_point)
+                    && (y >= 0) && (x >= 0)) {
                 _root.setPoint(x, y)
-                //写入屏幕点阵数组
                 _root.dm_screen_dot_matrix[y][x] = true
             }
         }
-        //        console.log("yx:", dm_screen_dot_matrix)
+    }
+
+    function getDotItem(x, y) {
+        var index = y * dot_matrix_screen.dm_dot_row_point + x
+        if (index >= 0 && index < _grid_repeater.count) {
+            return _grid_repeater.itemAt(y * dm_dot_row_point + x)
+        } else {
+            return null
+        }
     }
 
     onDm_dot_col_pointChanged: {
+        console.log("col", dm_dot_col_point)
         _root.resizeScreenArray()
     }
     onDm_dot_row_pointChanged: {
+        console.log("row", dm_dot_row_point)
         _root.resizeScreenArray()
     }
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
-        function getIndexForAxis(x, y) {
-            var x_index = Math.floor(x / (dm_dot_size + dm_dot_spacing))
-        }
 
         onMouseXChanged: {
             //鼠标X变化
             //计算当前x坐标对应点阵中的X轴方向点的序号
             var current_x = Math.floor(mouseX / (dm_dot_size + dm_dot_spacing))
-            if (current_x >= dm_dot_row_point) {
-                current_x = dm_dot_row_point - 1
-            }
-            if (current_x < 0) {
-                current_x = 0
-            }
+            current_x = Math.max(0, Math.min(current_x, dm_dot_row_point - 1))
+
             //发生变化时
             if (current_x != _root.latest_x) {
                 //离开旧点
@@ -148,12 +150,8 @@ Rectangle {
         }
         onMouseYChanged: {
             var current_y = Math.floor(mouseY / (dm_dot_size + dm_dot_spacing))
-            if (current_y >= dm_dot_col_point) {
-                current_y = dm_dot_col_point - 1
-            }
-            if (current_y < 0) {
-                current_y = 0
-            }
+            current_y = Math.max(0, Math.min(current_y, dm_dot_col_point - 1))
+
             if (current_y != _root.latest_y) {
                 //离开旧点
                 _root.exitPoint(_root.latest_x, _root.latest_y)
@@ -177,28 +175,24 @@ Rectangle {
         }
     }
 
-    Column {
-        x: dm_dot_spacing
-        y: dm_dot_spacing
-        anchors.fill: parent
+    Grid {
+        rows: dm_dot_col_point
+        columns: dm_dot_row_point
         spacing: dm_dot_spacing
+        anchors.fill: parent
         Repeater {
-            id: _col_repeater
-            model: dm_dot_col_point
-            delegate: Row {
-                //生成一行
-                spacing: dm_dot_spacing
-                Repeater {
-                    model: dm_dot_row_point
-                    delegate: DotItem {
-                        width: dm_dot_size
-                        checked_color: dm_dot_check_color
-                    }
-                }
+            id: _grid_repeater
+            model: dm_dot_col_point * dm_dot_row_point
+            delegate: DotItem {
+                width: dm_dot_size
+                checked_color: dm_dot_check_color
             }
         }
     }
-    onDm_dot_check_colorChanged: {
-
+    onWidthChanged: {
+        console.log("w:", width)
+    }
+    onHeightChanged: {
+        console.log("h:", height)
     }
 }

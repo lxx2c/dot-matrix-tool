@@ -28,7 +28,6 @@ Item {
             height: _root.height - 8
             anchors.verticalCenter: parent.verticalCenter
             background: Rectangle {
-
                 color: "#E0E0E0"
                 radius: 3
             }

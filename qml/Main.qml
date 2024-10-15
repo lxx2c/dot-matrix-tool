@@ -11,7 +11,8 @@ import "./"
 Window {
     id: _root
     width: 755
-    height: 480
+    height: 280
+    minimumWidth: row_screen_params.width + 20
     visible: true
     title: qsTr("Dot-Matrix Tool - default.ini")
     Backend {
@@ -51,7 +52,14 @@ Window {
         dot_matrix_screen.dm_dot_col_point = height_input.dm_current_value
         dot_matrix_screen.dm_dot_size = size_input.dm_current_value
         dot_matrix_screen.dm_dot_spacing = spacing_input.dm_current_value
+
+        _root.width = dot_matrix_screen.width + 20
+        code_scorllview.height = 200
+        _root.height = col_menu.y + row_file_select.height + row_screen_params.height
+                + row_dot_mode.height + dot_matrix_screen.height + row_general.height
+                + code_scorllview.height + col_menu.spacing * 6 + 10
     }
+    //点阵左移
     function moveLeft() {
         var dotMatrix = dot_matrix_screen.getScreenPoints()
         for (let i in dotMatrix) {
@@ -60,7 +68,7 @@ Window {
         dot_matrix_screen.clearScreen()
         dot_matrix_screen.setScreenPoints(dotMatrix)
     }
-
+    //点阵右移
     function moveRight() {
         var dotMatrix = dot_matrix_screen.getScreenPoints()
         for (let i in dotMatrix) {
@@ -69,7 +77,7 @@ Window {
         dot_matrix_screen.clearScreen()
         dot_matrix_screen.setScreenPoints(dotMatrix)
     }
-
+    //点阵上移
     function moveUp() {
         var dotMatrix = dot_matrix_screen.getScreenPoints()
         for (let i in dotMatrix) {
@@ -78,7 +86,7 @@ Window {
         dot_matrix_screen.clearScreen()
         dot_matrix_screen.setScreenPoints(dotMatrix)
     }
-
+    //点阵下移
     function moveDown() {
         var dotMatrix = dot_matrix_screen.getScreenPoints()
         for (let i in dotMatrix) {
@@ -88,15 +96,17 @@ Window {
         dot_matrix_screen.setScreenPoints(dotMatrix)
     }
 
-    ColumnLayout {
+    Column {
         x: 10
         y: 10
         spacing: 10
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10
-        anchors.top: parent.top
+        //        anchors.bottom: parent.bottom
+        //        anchors.bottomMargin: 10
+        //        anchors.top: parent.top
+        //        bottomPadding: 10
         id: col_menu
         Row {
+            id: row_file_select
             spacing: 10
             Button {
                 height: size_input.height + 8
@@ -126,6 +136,7 @@ Window {
 
         Row {
             spacing: 5
+            id: row_screen_params
             DMInputNumber {
                 objectName: "Input_RowPoints"
                 id: width_input
@@ -197,6 +208,7 @@ Window {
             }
         }
         Row {
+            id: row_dot_mode
             spacing: 5
             DMSelect {
                 objectName: "Select_ReadMode"
@@ -265,7 +277,8 @@ Window {
         }
 
         Row {
-            topPadding: -10
+            id: row_direction
+            //            topPadding: -10
             DMButton {
                 width: 80
                 height: 30
@@ -309,22 +322,11 @@ Window {
         DMScreen {
             id: dot_matrix_screen
             objectName: "dot_matrix_screen"
-            dm_dot_col_point: 20
-            dm_dot_row_point: 20
-            dm_dot_size: 10
-            dm_dot_spacing: 1
-            dm_screen_dot_matrix: [[0]]
-            onDm_dot_col_pointChanged: {
-                _root.resizeScreen()
+            onHeightChanged: {
+
             }
-            onDm_dot_row_pointChanged: {
-                _root.resizeScreen()
-            }
-            onLatest_xChanged: {
-                current_x.text = "X:" + latest_x
-            }
-            onLatest_yChanged: {
-                current_y.text = "Y:" + latest_y
+            onWidthChanged: {
+
             }
         }
 
@@ -361,13 +363,18 @@ Window {
                     backend.signalQmlValueChange()
                 }
             }
+            onYChanged: {
+                code_scorllview.height = _root.height - row_general.y
+                        - row_general.height - col_menu.spacing * 2 - 10
+            }
         }
 
         ScrollView {
             id: code_scorllview
-            Layout.preferredWidth: 800
-            Layout.fillHeight: true
             clip: true
+            height: 200
+            width: row_screen_params.width
+
             background: Rectangle {
                 color: "#f0f0f0"
                 border.color: "black"
@@ -379,26 +386,17 @@ Window {
                 height: code_scorllview.height
                 selectByMouse: true
             }
-            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-            ScrollBar.vertical.policy: ScrollBar.AsNeeded
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
         }
-    }
-    Component.onCompleted: {
-        if (dot_matrix_screen.width > code_scorllview.width) {
-            _root.width = dot_matrix_screen.x + dot_matrix_screen.width + 20
-        } else {
-            _root.width = code_scorllview.x + code_scorllview.width + 20
-        }
-        _root.height = code_scorllview.y + code_scorllview.height + 20
-        dot_matrix_screen.dm_dot_col_point = height_input.dm_current_value
-        dot_matrix_screen.dm_dot_row_point = width_input.dm_current_value
     }
     onWidthChanged: {
 
         backend.signalQmlValueChange()
     }
     onHeightChanged: {
-
+        code_scorllview.height = _root.height - row_general.y
+                - row_general.height - col_menu.spacing * 2 - 10
         backend.signalQmlValueChange()
     }
 }
