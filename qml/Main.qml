@@ -254,7 +254,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     id: current_x
-                    text: qsTr("X:0")
+                    text: qsTr("X:")+String(dot_matrix_screen.latest_x)
                     color: "white"
                     font.bold: true
                     font.pointSize: 10
@@ -268,7 +268,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     id: current_y
-                    text: qsTr("Y:0")
+                    text: qsTr("Y:")+String(dot_matrix_screen.latest_y)
                     color: "white"
                     font.bold: true
                     font.pointSize: 10

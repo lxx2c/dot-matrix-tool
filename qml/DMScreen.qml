@@ -54,25 +54,6 @@ Rectangle {
         }
     }
 
-    //鼠标hover
-    function enterPoint(x, y) {
-        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
-            var dot = _root.getDotItem(x, y)
-            if (dot && typeof (dot) === "object") {
-                dot.isHovered = true
-            }
-        }
-    }
-
-    function exitPoint(x, y) {
-        if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
-            var dot = _root.getDotItem(x, y)
-            if (dot && typeof (dot) === "object") {
-                dot.isHovered = false
-            }
-        }
-    }
-
     //触发点反转
     function triggerPoint(x, y) {
         if (x >= 0 && x < dm_dot_row_point && y >= 0 && y < dm_dot_col_point) {
@@ -135,14 +116,9 @@ Rectangle {
             //计算当前x坐标对应点阵中的X轴方向点的序号
             var current_x = Math.floor(mouseX / (dm_dot_size + dm_dot_spacing))
             current_x = Math.max(0, Math.min(current_x, dm_dot_row_point - 1))
-
             //发生变化时
             if (current_x != _root.latest_x) {
-                //离开旧点
-                _root.exitPoint(_root.latest_x, _root.latest_y)
                 _root.latest_x = current_x
-                //进入新点
-                _root.enterPoint(_root.latest_x, _root.latest_y)
                 //如果左键被按下
                 if (_root.leftButtonPressed)
                     _root.triggerPoint(_root.latest_x, _root.latest_y)
@@ -151,13 +127,9 @@ Rectangle {
         onMouseYChanged: {
             var current_y = Math.floor(mouseY / (dm_dot_size + dm_dot_spacing))
             current_y = Math.max(0, Math.min(current_y, dm_dot_col_point - 1))
-
+            //发生变化时
             if (current_y != _root.latest_y) {
-                //离开旧点
-                _root.exitPoint(_root.latest_x, _root.latest_y)
                 _root.latest_y = current_y
-                //进入新点
-                _root.enterPoint(_root.latest_x, _root.latest_y)
                 //如果左键被按下
                 if (_root.leftButtonPressed)
                     _root.triggerPoint(_root.latest_x, _root.latest_y)
@@ -171,7 +143,8 @@ Rectangle {
             _root.leftButtonPressed = false
         }
         onExited: {
-            _root.exitPoint(_root.latest_x, _root.latest_y)
+            _root.latest_x = -1
+            _root.latest_y = -1
         }
     }
 
@@ -186,13 +159,8 @@ Rectangle {
             delegate: DotItem {
                 width: dm_dot_size
                 checked_color: dm_dot_check_color
+                isHovered:((_root.latest_x > -1) && (_root.latest_y > -1) && (_root.latest_y*dm_dot_row_point+_root.latest_x) === index)?true:false
             }
         }
-    }
-    onWidthChanged: {
-        console.log("w:", width)
-    }
-    onHeightChanged: {
-        console.log("h:", height)
     }
 }

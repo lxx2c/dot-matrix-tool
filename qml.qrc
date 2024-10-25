@@ -10,5 +10,6 @@
         <file>qml/Main.qml</file>
         <file>qml/DMDirectionKey.qml</file>
         <file>qml/DMButton.qml</file>
+        <file>icon.png</file>
     </qresource>
 </RCC>
