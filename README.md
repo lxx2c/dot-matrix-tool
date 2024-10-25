@@ -12,9 +12,7 @@
 使用时每个自定义的图案会保存成ini文件,然后保存在程序目录下
 输入需要的长宽, 点击生成后就可以开始绘图了
 
-![image](pic/pic1.png)
-
-![image](pic/pic2.png)
+![image](pic/v0.1.2.png)
 
 
 
